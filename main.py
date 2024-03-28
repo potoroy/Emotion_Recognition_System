@@ -28,6 +28,3 @@ y_pred = model.predict(X_test)
 accuracy = accuracy_score(y_test, y_pred)
 print("Accuracy:", accuracy)
 
-# Additional evaluation metrics or visualization can be added here
-
-# Step 4: (Optional) Adjust hyperparameters and repeat steps 2 and 3 as needed
