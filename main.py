@@ -1,30 +1,36 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.multioutput import MultiOutputClassifier
+from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score, classification_report
 
-df=pd.read_csv('dev.csv')
-print(df.head())
-print(df.dtypes)
-# Compute pairwise correlation of numerical columns
-#correlation_matrix = df.corr()
+# Load the dataset containing text data and emotion labels
+df = pd.read_csv('dev.csv')
 
-# Print the correlation matrix
-#print(correlation_matrix)
 # Define features (X) and target variable (y)
-X = df[['joy', 'sadness', 'anger', 'fear']]
-y = df['Tweet']  
+X = df['Tweet'] 
+y = df[['joy', 'sadness', 'anger', 'fear']] 
 
-# Split the data into training and testing sets (e.g., 80% training, 20% testing)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-# Step 1: Choose a model (Random Forest Classifier)
-model = RandomForestClassifier(random_state=42)
+# Convert continuous multi-output labels to binary labels
+y_binary = y.applymap(lambda x: 1 if x > 0 else 0) #otherwise, the accuracy was showing 0.00
 
-# Step 2: Train the model
-model.fit(X_train, y_train)
+# Vectorize the text data
+vectorizer = TfidfVectorizer(max_features=1000)
+X_vec = vectorizer.fit_transform(X)
 
-# Step 3: Evaluate the model
-y_pred = model.predict(X_test)
+# Split the dataset into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X_vec, y_binary, test_size=0.2, random_state=42)
+
+# Train multi-output SVM classifier
+classifier = MultiOutputClassifier(SVC(kernel='linear', random_state=42))
+classifier.fit(X_train, y_train)
+
+# Predict emotions on the test data
+y_pred = classifier.predict(X_test)
+
+# Evaluate the model's performance
 accuracy = accuracy_score(y_test, y_pred)
 print("Accuracy:", accuracy)
+
 
